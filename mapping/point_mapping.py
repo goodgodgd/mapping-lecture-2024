@@ -9,15 +9,11 @@ from mapping.geometry_visualizer import get_geometry_visualizer
 
 class PointMapping:
     def __init__(self, camera_intrinsic):
-        self._map_points: List[dto.MapPoint] = []  # 점 지도 데이터
         self._intrinsic = dto.Intrinsic(*camera_intrinsic)
         self._visualizer = get_geometry_visualizer()
-        self.frame_id = -1
-        self._im_shape = ()
         self._prev_frame = None
 
     def update_map(self, frame: dto.FrameData):
-        self.frame_id = frame.index
         self._im_shape = frame.image.shape
         if not self._check_pose_change(frame):
             return
@@ -39,13 +35,36 @@ class PointMapping:
         return False
     
     def _match_features(self, prv_image: np.ndarray, cur_image: np.ndarray):
+        """
+        param:
+            prv_image: previous image (H, W, 3 | uint8)
+            cur_image: current image (H, W, 3 | uint8)
+        return:
+            matches: list of cv2.DMatch
+            prv_features: list of dto.Feature
+            cur_features: list of dto.Feature
+        """
+        # TODO: extract keypoints, descriptors -> prv_features, cur_features [dto.Feature]
+        # TODO: match descriptors -> matches [cv2.DMatch]
+        # TODO: filter matches -> matches [cv2.DMatch]
+        # TODO: visualize matches
         return [], [], []
     
     def _triangulate_points(self, matches: List[cv2.DMatch], prv_features: List[dto.Feature], cur_features: List[dto.Feature]):
+        """
+        param:
+            matches: list of cv2.DMatch
+            prv_features: list of dto.Feature
+            cur_features: list of dto.Feature
+        return:
+            points3d: 3D points (N, 3 | float)
+        """
+        # TODO: compuate 3D line parameters for each match ( ax + by + cz + d = 0 )
+        # TODO: triangulate points -> points3d [np.ndarray]
         return []
 
     def _visualize_points(self, points3d: np.ndarray, prv_pose: dto.Pose, cur_pose: dto.Pose):
-        points3d = np.random.rand(10, 3)
+        points3d = np.random.rand(10, 3)  # TODO: this is for test, should be replaced with points3d from triangulation
         self._visualizer.clear_points()
         self._visualizer.clear_lines()
         self._visualizer.draw_points(points3d, color=np.array((0, 0, 255), dtype=np.uint8), size=5)

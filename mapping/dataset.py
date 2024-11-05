@@ -20,7 +20,7 @@ class Dataset:
     def __init__(self, data_path):
         self._data_path = data_path
         self._image_list = self._list_images(data_path)
-        self._gt_pose = self._read_poses(data_path)
+        self._gt_poses = self._read_poses(data_path)
 
     def __len__(self):
         return len(self._image_list)
@@ -57,7 +57,7 @@ class Dataset:
         return image
 
     def _get_pose_at(self, timestamp):
-        pose = self._gt_pose.loc[self._gt_pose.timestamp == timestamp, :]
+        pose = self._gt_poses.loc[self._gt_poses.timestamp == timestamp, :]
         if pose.empty:
             raise ValueError(f'pose not found for timestamp: {timestamp}')
         else:
