@@ -21,22 +21,23 @@ class Pose:
 
 
 @dc.dataclass(unsafe_hash=True)
-class FrameData:
-    index: int
-    timestamp: float
-    pose: Pose
-    image: np.ndarray
-
-
-@dc.dataclass(unsafe_hash=True)
-class Feature:
-    keypts: List[cv2.KeyPoint]  # key points
-    descrs: np.ndarray  # descriptor
-
-
-@dc.dataclass(unsafe_hash=True)
 class Intrinsic:
     fx: float  # focal length
     fy: float
     cx: float  # principal point
     cy: float
+
+
+@dc.dataclass(unsafe_hash=True)
+class FrameData:
+    index: int
+    timestamp: float
+    pose: Pose
+    image: np.ndarray
+    depth: np.ndarray
+    intrinsic: Intrinsic
+
+@dc.dataclass(unsafe_hash=True)
+class Feature:
+    keypts: List[cv2.KeyPoint]  # key points
+    descrs: np.ndarray  # descriptor

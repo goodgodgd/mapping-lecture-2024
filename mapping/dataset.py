@@ -6,7 +6,7 @@ import numpy as np
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config as cfg
-from mapping.dto import Pose, FrameData
+from mapping.dto import Pose, FrameData, Intrinsic
 
 np.set_printoptions(linewidth=200,  edgeitems=5)
 np.set_printoptions(suppress=True, formatter={'float': '{:.5f}'.format})
@@ -21,6 +21,7 @@ class Dataset:
         self._data_path = data_path
         self._image_list = self._list_images(data_path)
         self._gt_poses = self._read_poses(data_path)
+        self._intrinsic = self._read_intrinsic(data_path)
 
     def __len__(self):
         return len(self._image_list)
@@ -29,6 +30,7 @@ class Dataset:
         img_path = os.path.join(data_path, 'cam0', 'data')
         timestamps = [f[:-4] for f in os.listdir(img_path) if f.endswith('.png')]
         timestamps.sort()
+        # 앞쪽의 정지된 프레임 건너뛰기
         timestamps = timestamps[30:]
         print(f'png files: len={len(timestamps)}, first_file={timestamps[0]}')
         return timestamps
@@ -41,11 +43,16 @@ class Dataset:
         print(f'pose data: shape={pose.shape}\n', pose.head())
         return pose
     
+    def _read_intrinsic(self, data_path):
+        # cameraInfo.txt 참조
+        return Intrinsic(fx=600, fy=600, cx=320, cy=240)
+    
     def get_frame(self, index: int) -> FrameData:
         timestamp = self._image_list[index]
         image = self._get_image_at(timestamp)
+        depth = self._get_depth_at(timestamp)
         pose = self._get_pose_at(timestamp)
-        frame = FrameData(index=index, timestamp=timestamp, image=image, pose=pose)
+        frame = FrameData(index=index, timestamp=timestamp, image=image, pose=pose, depth=depth, intrinsic=self._intrinsic)
         cv2.imshow('image', image)
         cv2.waitKey(1)
         return frame
@@ -55,6 +62,12 @@ class Dataset:
         print(f'get_image_at: {filename}')
         image = cv2.imread(filename)
         return image
+
+    def _get_depth_at(self, timestamp):
+        filename = os.path.join(self._data_path, 'depth0', 'data', f'{timestamp}.png')
+        print(f'get_depth_at: {filename}')
+        depth = cv2.imread(filename, cv2.IMREAD_UNCHANGED)
+        return depth
 
     def _get_pose_at(self, timestamp):
         pose = self._gt_poses.loc[self._gt_poses.timestamp == timestamp, :]
