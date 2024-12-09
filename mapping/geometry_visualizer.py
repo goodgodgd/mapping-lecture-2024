@@ -73,7 +73,7 @@ class GeometryVisualizer:
         self.line_actors.clear()
 
     def draw_pose(self, pose: dto.Pose):
-        axis_length = 0.2
+        axis_length = 0.3
         rotation = R.from_quat(pose.quat).as_matrix()
         x_axis = pose.posi + rotation @ np.array([axis_length, 0, 0])
         y_axis = pose.posi + rotation @ np.array([0, axis_length, 0])

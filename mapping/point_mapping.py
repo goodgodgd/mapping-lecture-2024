@@ -30,7 +30,9 @@ class PointMapping:
             return False
         dist = np.linalg.norm(frame.pose.posi - self._prev_frame.pose.posi)
         print(f'pose dist: {dist}')
-        if dist > 0.1:
+        if dist > 0.2:
+            rel_pose = tf_pose_to_local(self._prev_frame.pose, frame.pose)
+            print(f'rel_pose: {rel_pose}')
             return True
         return False
     
@@ -40,13 +42,13 @@ class PointMapping:
             prv_image: previous image (H, W, 3 | uint8)
             cur_image: current image (H, W, 3 | uint8)
         return:
-            matches: list of cv2.DMatch
-            prv_features: list of dto.Feature
-            cur_features: list of dto.Feature
+            matches: List[cv2.DMatch]
+            prv_features: List[dto.Feature]
+            cur_features: List[dto.Feature]
         """
-        # TODO: extract keypoints, descriptors -> prv_features, cur_features [dto.Feature]
-        # TODO: match descriptors -> matches [cv2.DMatch]
-        # TODO: filter matches -> matches [cv2.DMatch]
+        # TODO: extract keypoints, descriptors -> prv_features, cur_features: List[dto.Feature]
+        # TODO: match descriptors -> matches: List[cv2.DMatch]
+        # TODO: verify matches -> matches: List[cv2.DMatch]
         # TODO: visualize matches
         return [], [], []
     
@@ -59,8 +61,8 @@ class PointMapping:
         return:
             points3d: 3D points (N, 3 | float)
         """
-        # TODO: compuate 3D line parameters for each match ( ax + by + cz + d = 0 )
-        # TODO: triangulate points -> points3d [np.ndarray]
+        # TODO: compute a pair of 3D line parameters for each match ( ax + by + cz + d = 0 )
+        # TODO: triangulate points -> points3d: np.ndarray
         return []
 
     def _visualize_points(self, points3d: np.ndarray, prv_pose: dto.Pose, cur_pose: dto.Pose):
@@ -74,3 +76,12 @@ class PointMapping:
         self._visualizer.draw_pose(cur_pose)
         self._visualizer.show()
 
+
+def tf_pose_to_local(pose1: dto.Pose, pose2: dto.Pose) -> dto.Pose:
+    r1 = R.from_quat(pose1.quat)
+    r2 = R.from_quat(pose2.quat)
+    rel_rotation = r1.inv() * r2
+    rotmat = rel_rotation.as_matrix()
+    rel_quat = rel_rotation.as_quat()
+    rel_posi = r1.inv().apply(pose2.posi - pose1.posi)
+    return dto.Pose(posi=rel_posi, quat=rel_quat)
